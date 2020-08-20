@@ -29,17 +29,7 @@ function start() {
 
 function getHTML() {
   const styleSheets = Array.from(document.styleSheets);
-  const css = styleSheets.reduce((content, styleSheet) => {
-    const { tagName } = styleSheet.ownerNode;
-    if (tagName === 'STYLE') {
-      for (const rule of styleSheet.cssRules) {
-        if (isCSSRuleUsed(rule)) {
-          content += rule.cssText;
-        }
-      }
-    }
-    return content;
-  }, '');
+
   const head = styleSheets.reduce((content, styleSheet) => {
     if (styleSheet.ownerNode.tagName === 'LINK') {
       content += styleSheet.ownerNode.outerHTML;
@@ -75,6 +65,18 @@ function getHTML() {
     }
   }
   traverse(root);
+
+  const css = styleSheets.reduce((content, styleSheet) => {
+    const { tagName } = styleSheet.ownerNode;
+    if (tagName === 'STYLE') {
+      for (const rule of styleSheet.cssRules) {
+        if (isCSSRuleUsed(rule, root)) {
+          content += rule.cssText;
+        }
+      }
+    }
+    return content;
+  }, '');
 
   const body = root.outerHTML;
 
@@ -113,16 +115,17 @@ function extractPseudoElementFromSelectorText(selectorText) {
 /**
  * Find element which is queried that selector
  * @param {CSSRule} rule
+ * @param {Element} root
  */
-function isCSSRuleUsed(rule) {
+function isCSSRuleUsed(rule, root) {
   if (rule.type === CSSRule.STYLE_RULE) {
     const selector = extractPseudoElementFromSelectorText(rule.selectorText);
-    return Boolean(selector && document.querySelector(selector));
+    return Boolean(selector && root.querySelector(selector));
   }
   if (rule.type === CSSRule.MEDIA_RULE) {
     for (const r of rule.cssRules) {
       const selector = extractPseudoElementFromSelectorText(r.selectorText);
-      if (selector && document.querySelector(selector)) {
+      if (selector && root.querySelector(selector)) {
         return true; // TODO: check indivisual css rules
       }
       return false;
