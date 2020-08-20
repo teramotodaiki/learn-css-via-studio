@@ -33,7 +33,9 @@ function getHTML() {
     const { tagName } = styleSheet.ownerNode;
     if (tagName === 'STYLE') {
       for (const rule of styleSheet.cssRules) {
-        content += rule.cssText;
+        if (isCSSRuleUsed(rule)) {
+          content += rule.cssText;
+        }
       }
     }
     return content;
@@ -76,4 +78,43 @@ function getHTML() {
     </html>`;
 
   return html;
+}
+
+/**
+ * Remove pseudo element like "::hover"
+ * @param {String} selectorText
+ */
+function extractPseudoElementFromSelectorText(selectorText) {
+  return selectorText
+    .split(',')
+    .map((s) => s.split('::')[0].trim())
+    .filter((s) => s)
+    .join(',');
+}
+
+/**
+ * Find element which is queried that selector
+ * @param {CSSRule} rule
+ */
+function isCSSRuleUsed(rule) {
+  if (rule.type === CSSRule.STYLE_RULE) {
+    const selector = extractPseudoElementFromSelectorText(rule.selectorText);
+    return Boolean(selector && document.querySelector(selector));
+  }
+  if (rule.type === CSSRule.MEDIA_RULE) {
+    for (const r of rule.cssRules) {
+      const selector = extractPseudoElementFromSelectorText(r.selectorText);
+      if (selector && document.querySelector(selector)) {
+        return true; // TODO: check indivisual css rules
+      }
+      return false;
+    }
+  }
+  if (rule.type === CSSRule.FONT_FACE_RULE) {
+    return true; // TODO: check font-family is used
+  }
+  if (rule.type === CSSRule.KEYFRAMES_RULE) {
+    return false; // TODO: support keyframe animation
+  }
+  throw new Error('Not implemented: ' + rule.type);
 }
