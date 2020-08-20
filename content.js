@@ -66,6 +66,9 @@ function getHTML() {
   }
   traverse(root);
 
+  const selectorToRulesMap = new Map([['', {}]]); // type hint
+  selectorToRulesMap.clear();
+
   /**
    * Find element which is queried that selector
    * @param {CSSRule} rule
@@ -74,18 +77,34 @@ function getHTML() {
     if (rule.type === CSSRule.STYLE_RULE) {
       const selector = extractPseudoElementFromSelectorText(rule.selectorText);
       if (selector && root.querySelector(selector)) {
+        // to omit same properties assigned to same selectors in different media queries
+        selectorToRulesMap.set(rule.selectorText, rule.style); // cache
         return rule.cssText;
       }
       return '';
     }
     if (rule.type === CSSRule.MEDIA_RULE) {
-      for (const r of rule.cssRules) {
+      for (const [index, r] of Array.from(rule.cssRules).entries()) {
         const selector = extractPseudoElementFromSelectorText(r.selectorText);
         if (selector && root.querySelector(selector)) {
-          return rule.cssText; // TODO: check indivisual css rules
+          // omit same properties assigned to same selector without media query
+          const style = selectorToRulesMap.get(r.selectorText);
+          if (style) {
+            for (const key of Array.from(r.style)) {
+              if (r.style[key] === style[key]) {
+                r.style.removeProperty(key); // omit property
+              }
+            }
+          }
+          if (r.style.length === 0) {
+            rule.deleteRule(index); // remove empty CSSRule
+          }
         }
-        return '';
       }
+      if (rule.cssRules.length === 0) {
+        return ''; // remove empty CSSMediaRule
+      }
+      return rule.cssText;
     }
     if (rule.type === CSSRule.FONT_FACE_RULE) {
       return rule.cssText; // TODO: check font-family is used
