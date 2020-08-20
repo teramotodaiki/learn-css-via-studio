@@ -1,0 +1,9 @@
+#learn-css-via-studio-button {
+  position: fixed;
+  z-index: 2000;
+  cursor: pointer;
+  padding: 8px 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.14);
+  background-color: #fff;
+  border-radius: 4px;
+}
