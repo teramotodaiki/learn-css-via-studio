@@ -47,17 +47,36 @@ function getHTML() {
     return content;
   }, '');
 
-  const root = document.querySelector('.StudioCanvas');
-  const body = Array.from(root.children).reduce((content, node) => {
-    if (
-      node.className !== 'publish-studio-style' &&
-      node.className !== 'studio__banner' &&
-      node.id !== __id
-    ) {
-      content += node.outerHTML;
+  const root = document.querySelector('.StudioCanvas').cloneNode(true);
+  /**
+   * @param {Element} element
+   */
+  function traverse(element) {
+    for (const attr of Array.from(element.attributes)) {
+      if (
+        attr.name.startsWith('data-r-') ||
+        attr.name.startsWith('data-rid') ||
+        attr.name.startsWith('data-v-')
+      ) {
+        element.removeAttribute(attr.name);
+      }
     }
-    return content;
-  }, '');
+
+    for (const child of Array.from(element.children)) {
+      if (
+        child.className === 'publish-studio-style' ||
+        child.className === 'studio__banner' ||
+        child.id === __id
+      ) {
+        element.removeChild(child);
+      } else {
+        traverse(child);
+      }
+    }
+  }
+  traverse(root);
+
+  const body = root.outerHTML;
 
   const html = `<!DOCTYPE html>
     <html>
@@ -71,7 +90,6 @@ function getHTML() {
     </style>
     </head>
     <body>
-    <div class="StudioCanvas">
     ${body}
     </div>
     </body>
