@@ -136,7 +136,7 @@ function getHTML() {
     const { tagName } = styleSheet.ownerNode;
     if (tagName === 'STYLE') {
       for (const rule of styleSheet.cssRules) {
-        content += getOptimizedCssText(rule);
+        content += getOptimizedCssText(rule) + '\n';
       }
     }
     return content;
@@ -147,6 +147,7 @@ function getHTML() {
   attrToShortNameMap.clear();
   const hashMap = new Map([['', '']]); // type hint
   hashMap.clear();
+  const duplicatedAttrs = new Set();
   for (const [attr, decls] of styleDeclarationMap.entries()) {
     const serialized = JSON.stringify(decls);
     const className = hashMap.get(serialized);
@@ -156,9 +157,20 @@ function getHTML() {
       hashMap.set(serialized, newOne);
     } else {
       attrToShortNameMap.set(attr, className);
+      duplicatedAttrs.add(attr);
     }
   }
-
+  css = css
+    .split('\n')
+    .filter((content) => {
+      for (const attr of duplicatedAttrs.keys()) {
+        if (content.includes(attr)) {
+          return false; // remove duplicated declaration
+        }
+      }
+      return true;
+    })
+    .join('\n');
   for (const [attr, cn] of attrToShortNameMap.entries()) {
     css = replaceAll(css, `.sd[${attr}]`, `.sd.${cn}`);
   }
