@@ -66,13 +66,41 @@ function getHTML() {
   }
   traverse(root);
 
+  /**
+   * Find element which is queried that selector
+   * @param {CSSRule} rule
+   */
+  function getOptimizedCssText(rule) {
+    if (rule.type === CSSRule.STYLE_RULE) {
+      const selector = extractPseudoElementFromSelectorText(rule.selectorText);
+      if (selector && root.querySelector(selector)) {
+        return rule.cssText;
+      }
+      return '';
+    }
+    if (rule.type === CSSRule.MEDIA_RULE) {
+      for (const r of rule.cssRules) {
+        const selector = extractPseudoElementFromSelectorText(r.selectorText);
+        if (selector && root.querySelector(selector)) {
+          return rule.cssText; // TODO: check indivisual css rules
+        }
+        return '';
+      }
+    }
+    if (rule.type === CSSRule.FONT_FACE_RULE) {
+      return rule.cssText; // TODO: check font-family is used
+    }
+    if (rule.type === CSSRule.KEYFRAMES_RULE) {
+      return ''; // TODO: support keyframe animation
+    }
+    throw new Error('Not implemented rule type: ' + rule.type);
+  }
+
   const css = styleSheets.reduce((content, styleSheet) => {
     const { tagName } = styleSheet.ownerNode;
     if (tagName === 'STYLE') {
       for (const rule of styleSheet.cssRules) {
-        if (isCSSRuleUsed(rule, root)) {
-          content += rule.cssText;
-        }
+        content += getOptimizedCssText(rule);
       }
     }
     return content;
@@ -110,32 +138,4 @@ function extractPseudoElementFromSelectorText(selectorText) {
     .map((s) => s.split('::')[0].trim())
     .filter((s) => s)
     .join(',');
-}
-
-/**
- * Find element which is queried that selector
- * @param {CSSRule} rule
- * @param {Element} root
- */
-function isCSSRuleUsed(rule, root) {
-  if (rule.type === CSSRule.STYLE_RULE) {
-    const selector = extractPseudoElementFromSelectorText(rule.selectorText);
-    return Boolean(selector && root.querySelector(selector));
-  }
-  if (rule.type === CSSRule.MEDIA_RULE) {
-    for (const r of rule.cssRules) {
-      const selector = extractPseudoElementFromSelectorText(r.selectorText);
-      if (selector && root.querySelector(selector)) {
-        return true; // TODO: check indivisual css rules
-      }
-      return false;
-    }
-  }
-  if (rule.type === CSSRule.FONT_FACE_RULE) {
-    return true; // TODO: check font-family is used
-  }
-  if (rule.type === CSSRule.KEYFRAMES_RULE) {
-    return false; // TODO: support keyframe animation
-  }
-  throw new Error('Not implemented: ' + rule.type);
 }
