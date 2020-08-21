@@ -82,9 +82,10 @@ function getHTML() {
       const node = selector && root.querySelector(selector);
       if (node) {
         // to omit same properties assigned to same selectors in different media queries
-        selectorToRulesMap.set(rule.selectorText, rule.style); // cache
+        selectorToRulesMap.set(rule.selectorText, cloneStyle(rule.style)); // cache
         const result = /^\.sd\[(data-s-.*)\]$/.exec(rule.selectorText);
         if (result) {
+          reduceUnnecessaryStyle(rule.style, node); // omit unnecessary styles
           const decls = styleDeclarationMap.get(result[1]) || {};
           decls[''] = rule.style.cssText;
           styleDeclarationMap.set(result[1], decls);
@@ -241,3 +242,44 @@ function replaceAll(str, from, to) {
  * @param {CSSStyleDeclaration} style
  */
 function serializeStyle(style) {}
+
+/**
+ * @param {CSSStyleDeclaration} style
+ */
+function cloneStyle(style) {
+  const el = document.createElement('div');
+  el.style.cssText = style.cssText;
+  return el.style;
+}
+
+/**
+ * For only STYLE_RULE.
+ * Not for in media query because it may override rule.
+ * @param {CSSStyleDeclaration} style
+ */
+function reduceUnnecessaryStyle(style, node) {
+  if (style.width === 'auto') {
+    style.removeProperty('width');
+  }
+  if (style.height === 'auto') {
+    style.removeProperty('height');
+  }
+  if (style.overflowX === 'visible') {
+    style.removeProperty('overflow-x');
+  }
+  if (style.overflowY === 'visible') {
+    style.removeProperty('overflow-y');
+  }
+  if (style.borderRadius === '0px') {
+    style.removeProperty('border-radius');
+  }
+  if (style.padding === '0px') {
+    style.removeProperty('padding');
+  }
+  if (style.flex === '0 0 auto') {
+    style.removeProperty('flex');
+  }
+  if (style.opacity === '1') {
+    style.removeProperty('opacity');
+  }
+}
