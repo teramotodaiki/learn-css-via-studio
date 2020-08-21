@@ -1,0 +1,94 @@
+a,
+abbr,
+address,
+article,
+aside,
+audio,
+b,
+blockquote,
+body,
+button,
+canvas,
+caption,
+cite,
+code,
+dd,
+del,
+details,
+dfn,
+div,
+dl,
+dt,
+em,
+fieldset,
+figcaption,
+figure,
+footer,
+form,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+header,
+hgroup,
+html,
+i,
+iframe,
+img,
+input,
+ins,
+kbd,
+label,
+legend,
+li,
+mark,
+menu,
+nav,
+object,
+ol,
+p,
+pre,
+q,
+samp,
+section,
+small,
+span,
+strong,
+sub,
+summary,
+sup,
+table,
+tbody,
+td,
+textarea,
+tfoot,
+th,
+thead,
+time,
+tr,
+ul,
+var,
+video {
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
+  outline: 0px;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent;
+  list-style: none;
+  font-family: Lato, 'Noto Sans Japanese';
+  text-decoration: none;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.4, 0.4, 0, 1) 0s;
+  letter-spacing: 0px;
+  font-weight: 400;
+  color: rgb(51, 51, 51);
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  place-content: flex-start;
+  backface-visibility: hidden;
+}
