@@ -121,7 +121,7 @@ function getHTML() {
       if (rule.cssRules.length === 0) {
         return ''; // remove empty CSSMediaRule
       }
-      return rule.cssText;
+      return replaceAll(rule.cssText, '\n', ''); // make css single line to remove duplicated declaration
     }
     if (rule.type === CSSRule.FONT_FACE_RULE) {
       return rule.cssText; // TODO: check font-family is used
