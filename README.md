@@ -12,9 +12,7 @@ STUDIO で作成したウェブページを用いて HTML/CSS を学ぶための
 
 # TODO
 
-- 空のメディアクエリーを書き込まないようにする
-- height: auto などを初期値と変わらないプロパティを消す
-- .sd .icon .text .fixed などを .sd.c~ にマージする
-  - .sd.c~ を .c~ にする (?)
 - font-family を継承させる
 - 使われていない font-face を削除する
+- a href のリンクを修正
+- コピペして欲しい .sd などを別 style に移す or Link タグで読み込む
