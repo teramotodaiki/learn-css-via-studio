@@ -238,12 +238,6 @@ function replaceAll(str, from, to) {
 }
 
 /**
- *
- * @param {CSSStyleDeclaration} style
- */
-function serializeStyle(style) {}
-
-/**
  * @param {CSSStyleDeclaration} style
  */
 function cloneStyle(style) {
@@ -257,7 +251,7 @@ function cloneStyle(style) {
  * Not for in media query because it may override rule.
  * @param {CSSStyleDeclaration} style
  */
-function reduceUnnecessaryStyle(style, node) {
+function reduceUnnecessaryStyle(style) {
   if (style.width === 'auto') {
     style.removeProperty('width');
   }
