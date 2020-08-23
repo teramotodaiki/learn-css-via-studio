@@ -1,0 +1,25 @@
+{
+  "name": "learn-css-via-studio",
+  "version": "1.0.0",
+  "description": "STUDIO で作成したウェブページを用いて HTML/CSS を学ぶための Chrome 拡張",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "npx tsc content.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teramotodaiki/learn-css-via-studio.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/teramotodaiki/learn-css-via-studio/issues"
+  },
+  "homepage": "https://github.com/teramotodaiki/learn-css-via-studio#readme",
+  "devDependencies": {
+    "typescript": "^4.0.2"
+  }
+}
