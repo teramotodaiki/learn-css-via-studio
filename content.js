@@ -66,10 +66,8 @@ function getHTML() {
      */
     function getOptimizedCssText(rule) {
         if (isCSSStyleRule(rule)) {
-            const selector = extractPseudoElementFromSelectorText(rule.selectorText);
-            const node = selector && root.querySelector(selector);
             const style = cloneStyle(rule.style);
-            if (node) {
+            if (matches(root, rule.selectorText)) {
                 // to omit same properties assigned to same selectors in different media queries
                 selectorToRulesMap.set(rule.selectorText, cloneStyle(rule.style)); // cache
                 const result = /^\.sd\[(data-s-.*)\]$/.exec(rule.selectorText);
@@ -89,8 +87,7 @@ function getHTML() {
                 if (!isCSSStyleRule(r))
                     throw new Error('type hint');
                 const style = cloneStyle(r.style);
-                const selector = extractPseudoElementFromSelectorText(r.selectorText);
-                if (selector && root.querySelector(selector)) {
+                if (matches(root, r.selectorText)) {
                     // omit same properties assigned to same selector without media query
                     const baseStyle = selectorToRulesMap.get(r.selectorText);
                     if (baseStyle) {
@@ -195,15 +192,77 @@ function getHTML() {
     </html>`;
     return html;
 }
+const pseudoClasses = [
+    ':active',
+    ':any-link',
+    ':blank',
+    ':checked',
+    ':current',
+    ':default',
+    ':defined',
+    /\:dir\([^[]*\)/,
+    ':disabled',
+    ':drop',
+    ':empty',
+    ':enabled',
+    ':first',
+    ':first-child',
+    ':first-of-type',
+    ':fullscreen',
+    ':future',
+    ':focus',
+    ':focus-visible',
+    ':focus-within',
+    /\:has\([^)]*\)/,
+    ':host',
+    ':host()',
+    /\:host-context\([^)]*\)/,
+    ':hover',
+    ':indeterminate',
+    ':in-range',
+    ':invalid',
+    /\:is\([^)]*\)/,
+    ':lang()',
+    ':last-child',
+    ':last-of-type',
+    ':left',
+    ':link',
+    ':local-link',
+    ':not()',
+    ':nth-child()',
+    /\:nth-col\([^)]*\)/,
+    ':nth-last-child()',
+    /\:nth-last-col\([^)]*\)/,
+    ':nth-last-of-type()',
+    ':nth-of-type()',
+    ':only-child',
+    ':only-of-type',
+    ':optional',
+    ':out-of-range',
+    ':past',
+    ':placeholder-shown',
+    ':read-only',
+    ':read-write',
+    ':required',
+    ':right',
+    ':root',
+    ':scope',
+    /\:state\([^)]*\)/,
+    ':target',
+    ':target-within',
+    ':user-invalid',
+    ':valid',
+    ':visited',
+    /\:where\([^)]*\)/,
+];
 /**
- * Remove pseudo element like "::hover"
+ * Remove pseudo classes like ":hover"
  */
-function extractPseudoElementFromSelectorText(selectorText) {
-    return selectorText
-        .split(',')
-        .map((s) => s.split('::')[0].trim())
-        .filter((s) => s)
-        .join(',');
+function extractPseudoClassesFromSelectorText(selectorText) {
+    for (const pseudoClass of pseudoClasses) {
+        selectorText = selectorText.replace(pseudoClass, '');
+    }
+    return selectorText;
 }
 /**
  * String.prototype.replaceAll
@@ -275,4 +334,14 @@ function isCSSPageRule(rule) {
 }
 function isCSSSupportsRule(rule) {
     return rule.type === CSSRule.SUPPORTS_RULE;
+}
+/**
+ * Does match element or descendants
+ */
+function matches(element, selectorText) {
+    selectorText = extractPseudoClassesFromSelectorText(selectorText);
+    if (!selectorText)
+        return false;
+    return (element.matches(selectorText) ||
+        Boolean(element.querySelector(selectorText)));
 }
