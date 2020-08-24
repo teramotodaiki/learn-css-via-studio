@@ -68,52 +68,50 @@ function getHTML() {
         if (isCSSStyleRule(rule)) {
             const selector = extractPseudoElementFromSelectorText(rule.selectorText);
             const node = selector && root.querySelector(selector);
+            const style = cloneStyle(rule.style);
             if (node) {
                 // to omit same properties assigned to same selectors in different media queries
                 selectorToRulesMap.set(rule.selectorText, cloneStyle(rule.style)); // cache
                 const result = /^\.sd\[(data-s-.*)\]$/.exec(rule.selectorText);
                 if (result) {
-                    reduceUnnecessaryStyle(rule.style); // omit unnecessary styles
+                    reduceUnnecessaryStyle(style); // omit unnecessary styles
                     const decls = styleDeclarationMap.get(result[1]) || {};
-                    decls[''] = rule.style.cssText;
+                    decls[''] = style.cssText;
                     styleDeclarationMap.set(result[1], decls);
                 }
-                return rule.cssText;
+                return `${rule.selectorText} { ${style.cssText} }`;
             }
             return '';
         }
         if (isCSSMediaRule(rule)) {
-            for (const [index, r] of Array.from(rule.cssRules).entries()) {
+            let css = '';
+            for (const r of Array.from(rule.cssRules)) {
                 if (!isCSSStyleRule(r))
                     throw new Error('type hint');
+                const style = cloneStyle(r.style);
                 const selector = extractPseudoElementFromSelectorText(r.selectorText);
                 if (selector && root.querySelector(selector)) {
                     // omit same properties assigned to same selector without media query
-                    const style = selectorToRulesMap.get(r.selectorText);
-                    if (style) {
-                        for (const key of Array.from(r.style)) {
-                            if (r.style[key] === style[key]) {
-                                r.style.removeProperty(key); // omit property
+                    const baseStyle = selectorToRulesMap.get(r.selectorText);
+                    if (baseStyle) {
+                        for (const key of Array.from(style)) {
+                            if (style[key] === baseStyle[key]) {
+                                style.removeProperty(key); // omit property
                             }
                         }
                     }
-                    if (r.style.length === 0) {
-                        rule.deleteRule(index); // remove empty CSSRule
-                    }
-                    else {
+                    if (style.length > 0) {
                         const result = /^\.sd\[(data-s-.*)\]$/.exec(r.selectorText);
                         if (result) {
                             const decls = styleDeclarationMap.get(result[1]) || {};
-                            decls[rule.conditionText] = r.style.cssText;
+                            decls[rule.conditionText] = style.cssText;
                             styleDeclarationMap.set(result[1], decls);
                         }
+                        css += `${r.selectorText} { ${style.cssText} }`;
                     }
                 }
             }
-            if (rule.cssRules.length === 0) {
-                return ''; // remove empty CSSMediaRule
-            }
-            return replaceAll(rule.cssText, '\n', ''); // make css single line to remove duplicated declaration
+            return css ? `@media ${rule.media} { ${css} }` : '';
         }
         if (isCSSFontFaceRule(rule)) {
             return rule.cssText; // TODO: check font-family is used
