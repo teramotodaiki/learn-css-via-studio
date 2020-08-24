@@ -44,6 +44,9 @@ function getHTML() {
                 element.removeAttribute(attr.name);
             }
         }
+        if (element instanceof HTMLAnchorElement) {
+            element.href = element.href; // make href absolute path
+        }
         for (const child of Array.from(element.children)) {
             if (child.className === 'publish-studio-style' ||
                 child.className === 'studio__banner' ||
